@@ -14,10 +14,10 @@ void Menu(){//Imprimir menu
         printf("Error al abrir el archivo de Catalogo.\n");
         return;
     }
-    while (fgets(line, 100, arch)) != NULL
+    while ((fgets(line, 100, arch)) != NULL)
     {
         printf("%s", line);
     }
     fclose(arch);
-#MOVER
 }
+//#MOVER
