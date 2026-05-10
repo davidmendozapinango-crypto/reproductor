@@ -16,11 +16,6 @@ typedef struct ListaDoble {
     int tamano;   
 } ListaDoble;
 
-void Menu(){//Imprimir menu
-    printf("------MENU------\n - play (nombre de lista o cancion)\n - queue (nombre de lista o cancion)\n - new (nombre de lista): (nombre cancion) - (nombre cancion) \n - next \n - back \n - shuffle\n - loop\n - clear queue\n - clear history\n - catalog\n - lists\n - queue\n (q para salir)\n");
-
-}
-
 void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y listas.
     FILE *ptrA = fopen(nombre, "r");
     if (nombre == NULL) { //Verificación de que se pudo abrir el archivo
