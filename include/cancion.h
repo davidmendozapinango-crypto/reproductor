@@ -29,20 +29,18 @@ void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y 
     }
 }
 
-Cancion* crearCancion(char* nombrePista, float duracionPista) {
+Cancion* crearCancion(char* nombrePista, float duracionPista) {//crea nodo cancion
     Cancion* new = (Cancion*)malloc(sizeof(Cancion));
-
     if (new == NULL) {
         printf("Error: No hay memoria suficiente para crear la canción.\n");
         return NULL;
     }
-
     strncpy(nuevo->nombre, nombrePista, 99);
     nuevo->nombre[99] = '\0'; 
     nuevo->duracion = duracionPista;
     nuevo->sig = NULL;
     nuevo->ant = NULL;
-    return nuevo;
+    return new;
 }
 
 #endif /*CANCION_H*/
