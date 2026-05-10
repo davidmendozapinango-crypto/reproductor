@@ -15,4 +15,13 @@ typedef struct ListaDoble {
     int tamano;   
 } ListaDoble;
 
+typedef struct nodo_pila {
+    int               value;
+    struct nodo_pila *next;
+} NodoPila;
+
+typedef struct {
+    NodoPila *tope;
+} historial_pila;
+
 #endif /*CANCION_H*/

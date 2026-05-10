@@ -36,3 +36,20 @@ Cancion* crearCancion(char* nombrePista, float duracionPista) {//crea nodo canci
     new->ant = NULL;
     return new;
 }
+
+void vaciar_repro(ListaDoble * repro)
+{
+    if (repro == NULL || repro->cabeza == NULL) return;
+    Cancion * actual = repro->cabeza;
+    Cancion * sig;
+
+    while (actual != NULL)
+    {
+        free(actual);
+        actual = sig;
+    }
+
+    repro->cola = NULL;
+    repro->cabeza = NULL;
+    repro->tamano = 0;
+}//Faltafuncion de Bucar_en_Catalogo para hacer despues la de Play
