@@ -24,7 +24,13 @@ void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y 
     char linea[600];
     while (fgets(linea, sizeof(linea), ptrA)){
         if (strstr(linea, "Catálogo:") != NULL){
-
+            char *token = strtok(linea, ":");
+            token = strtok(NULL, " - \n\r");
+            while (token != NULL){
+                //LLAMADA A LA FUNCION DE NUEVA CANCION(MALLOC)
+                printf("Cancion encontrada: %s\n", token);
+                token = strtok(NULL, " - \n\r");
+            }
         }
     }
 }
