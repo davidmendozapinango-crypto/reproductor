@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "cancion.h"
+
+void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y listas.
+    FILE *ptrA = fopen(nombre, "r");
+    if (ptrA == NULL) { //Verificación de que se pudo abrir el archivo
+        perror("Error al abrir");
+        return;
+    }
+    char linea[600];
+    while (fgets(linea, sizeof(linea), ptrA)){
+        if (strstr(linea, "Catálogo:") != NULL){
+            char *token = strtok(linea, ":");
+            token = strtok(NULL, " - \n\r");
+            while (token != NULL){
+                Cancion *nuevaC = crearCancion(token, 0.0);
+                printf("Cancion encontrada: %s\n", token);
+                token = strtok(NULL, " - \n\r");
+            }
+        }
+        else if (strchr(linea, ':' != NULL) && strstr(linea, "Catálogo:"== NULL)){
+            char *nombreL = strtok(linea, ":");
+            ListaDoble * nuevaLista = (ListaDoble*)malloc(sizeof(listaDoble));
+            strcpy(nuevaLista->nombreLista, nombreL);
+            nuevaLista->cabeza = NULL;
+
+            char *tokenCancion = strtok(NULL, " - \n\r");
+            while (tokenCancion != NULL){
+                //LLAMADA A LA FUNCION DE NUEVA CANCION
+                strcpy(nuevaC->nombre, tokenCancion);
+            }
+        }
+    }
+}
+
+Cancion* crearCancion(char* nombrePista, float duracionPista) {//crea nodo cancion
+    Cancion* new = (Cancion*)malloc(sizeof(Cancion));
+    if (new == NULL) {
+        printf("Error: No hay memoria suficiente para crear la canción.\n");
+        return NULL;
+    }
+    strncpy(new->nombre, nombrePista, 99);
+    new->nombre[99] = '\0'; 
+    new->duracion = duracionPista;
+    new->sig = NULL;
+    new->ant = NULL;
+    return new;
+}
+
+void vaciar_repro(ListaDoble * repro)
+{
+    if (repro == NULL || repro->cabeza == NULL) return;
+    Cancion * actual = repro->cabeza;
+    Cancion * sig;
+
+    while (actual != NULL)
+    {
+        free(actual);
+        actual = sig;
+    }
+
+    repro->cola = NULL;
+    repro->cabeza = NULL;
+    repro->tamano = 0;
+}//Faltafuncion de Bucar_en_Catalogo para hacer despues la de Play
