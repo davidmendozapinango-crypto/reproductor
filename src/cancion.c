@@ -37,10 +37,10 @@ Cancion* crearCancion(char* nombrePista, float duracionPista) {//crea nodo canci
         printf("Error: No hay memoria suficiente para crear la canción.\n");
         return NULL;
     }
-    strncpy(nuevo->nombre, nombrePista, 99);
-    nuevo->nombre[99] = '\0'; 
-    nuevo->duracion = duracionPista;
-    nuevo->sig = NULL;
-    nuevo->ant = NULL;
+    strncpy(new->nombre, nombrePista, 99);
+    new->nombre[99] = '\0'; 
+    new->duracion = duracionPista;
+    new->sig = NULL;
+    new->ant = NULL;
     return new;
 }
