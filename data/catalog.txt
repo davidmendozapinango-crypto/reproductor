@@ -1,0 +1,3 @@
+Catalogo: cancion1 - cancion2 - cancion3 - cancion4 - cancion5
+nombre lista 1: cancion1 - cancion3
+nombre lista 2: cancion2 - cancion4
