@@ -1,11 +1,10 @@
-
 #ifndef UTILS_H
 #define UTILS_H
 
 void imprimir_bienvenida(void);
 #endif /* UTILS_H */
 
-void Menu(){//Imprimir menu
+void imprimir_catalogo(){//Abre e imrpimir el Ctalogo con las canciones y playlits
     FILE *arch;
     char line[100];
     arch = fopen("Catalogo.txt", "r");
@@ -19,5 +18,4 @@ void Menu(){//Imprimir menu
         printf("%s", line);
     }
     fclose(arch);
-#MOVER
 }

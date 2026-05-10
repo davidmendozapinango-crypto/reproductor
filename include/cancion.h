@@ -2,7 +2,6 @@
 #define CANCION_H
 #include <string.h>
 
-
 typedef struct Cancion { //Defino una canción como un nodo de lista doblemente enlazada.
     char nombre[100];
     struct Cancion *sig;
@@ -27,6 +26,5 @@ void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y 
         printf("Error: No se pudo abrir el archivo '%s'\n", nombre);
         return;
     }
-
 }
 #endif /*CANCION_H*/
