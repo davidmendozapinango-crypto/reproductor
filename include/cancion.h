@@ -23,15 +23,20 @@ void Menu(){//Imprimir menu
 
 void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y listas.
     FILE *ptrA = fopen(nombre, "r");
-    if (nombre == NULL) { //Verificación de que se pudo abrir el archivo
+    if (ptrA == NULL) { //Verificación de que se pudo abrir el archivo
         perror("Error al abrir");
         return;
     }
-    
-    if (ptrA == NULL){
-        printf("Error: No se pudo abrir el archivo '%s'\n", nombre);
-        return;
+    char linea[600];
+    while (fgets(linea, sizeof(linea), ptrA)){
+        if (strstr(linea, "Catálogo:") != NULL){
+
+        }
     }
+    {
+        /* code */
+    }
+    
 
 }
 #endif /*CANCION_H*/
