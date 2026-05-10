@@ -24,14 +24,32 @@ void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y 
     char linea[600];
     while (fgets(linea, sizeof(linea), ptrA)){
         if (strstr(linea, "Catálogo:") != NULL){
-            char *token = strtok(linea, ":");
-            token = strtok(NULL, " - \n\r");
-            while (token != NULL){
-                //LLAMADA A LA FUNCION DE NUEVA CANCION(MALLOC)
-                printf("Cancion encontrada: %s\n", token);
-                token = strtok(NULL, " - \n\r");
-            }
+
         }
     }
 }
+
+Cancion* crearCancion(char* nombrePista, float duracionPista) {
+    // 1. Reservar memoria dinámica para el nuevo nodo
+    Cancion* new = (Cancion*)malloc(sizeof(Cancion));
+
+    // 2. Verificar que la memoria se asignó correctamente (Manejo dinámico) 
+    if (new == NULL) {
+        printf("Error: No hay memoria suficiente para crear la canción.\n");
+        return NULL;
+    }
+
+    // 3. Copiar los datos al nodo
+    // Usamos strncpy para no desbordar el arreglo de 100 caracteres 
+    strncpy(nuevo->nombre, nombrePista, 99);
+    nuevo->nombre[99] = '\0'; // Asegurar el cierre del string
+    nuevo->duracion = duracionPista;
+
+    // 4. Inicializar punteros como NULL (VITAL en Listas Dobles) 
+    nuevo->sig = NULL;
+    nuevo->ant = NULL;
+
+    return nuevo;
+}
+
 #endif /*CANCION_H*/
