@@ -15,9 +15,21 @@ void leerArchivo(char *nombre){ //Para leer el archivo e identificar catalogo y 
             char *token = strtok(linea, ":");
             token = strtok(NULL, " - \n\r");
             while (token != NULL){
-                //LLAMADA A LA FUNCION DE NUEVA CANCION(MALLOC)
+                Cancion *nuevaC = crearCancion(token, 0.0);
                 printf("Cancion encontrada: %s\n", token);
                 token = strtok(NULL, " - \n\r");
+            }
+        }
+        else if (strchr(linea, ':' != NULL) && strstr(linea, "Catálogo:"== NULL)){
+            char *nombreL = strtok(linea, ":");
+            ListaDoble * nuevaLista = (ListaDoble*)malloc(sizeof(listaDoble));
+            strcpy(nuevaLista->nombreLista, nombreL);
+            nuevaLista->cabeza = NULL;
+
+            char *tokenCancion = strtok(NULL, " - \n\r");
+            while (tokenCancion != NULL){
+                //LLAMADA A LA FUNCION DE NUEVA CANCION
+                strcpy(nuevaC->nombre, tokenCancion);
             }
         }
     }
