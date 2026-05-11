@@ -24,3 +24,47 @@ Instala herramientas:
 ´´´
 make./proyectoMostrar más líneas
 ´´´
+
+## Checklist QA Manual
+
+Precondicion:
+
+1. Compilar el proyecto:
+
+```bat
+cmd /c build.bat
+```
+
+2. Ejecutar el programa:
+
+```powershell
+.\build\reproductor.exe
+```
+
+### Matriz de pruebas
+
+- [ ] Carga por defecto: presionar Enter en la ruta inicial y ejecutar `lists`.
+- [ ] Carga por ruta explicita: ingresar una ruta completa valida y ejecutar `catalog`.
+- [ ] Recarga por defecto: ejecutar `load`, presionar Enter y luego `catalog`.
+- [ ] Recarga por ruta explicita: ejecutar `load`, ingresar ruta valida y luego `lists`.
+- [ ] Fallback de recarga: ejecutar `load` con ruta invalida y verificar que carga por defecto.
+- [ ] Listado de canciones: ejecutar `songs Playlist1` y validar salida.
+- [ ] Lista inexistente: ejecutar `songs ListaNoExiste` y validar mensaje de error.
+- [ ] Reproducir cancion: ejecutar `play Back in Black`, luego `current`.
+- [ ] Reproducir lista: ejecutar `play Playlist1`, luego `current`.
+- [ ] Crear lista valida: ejecutar `new "PlaylistQA": Back in Black - Born For This`, luego `lists`.
+- [ ] Crear lista invalida: ejecutar `new "PlaylistBad": CancionInventada - Back in Black`.
+- [ ] Persistencia de lista: crear lista con `new`, salir con `q` y revisar que se anexo al final del archivo activo.
+- [ ] Salida limpia: ejecutar `q` y validar cierre sin errores.
+
+## Regresion automatizada
+
+Ejecutar:
+
+```bat
+cmd /c tests\run_tests.bat
+```
+
+Resultado esperado:
+
+- [ ] Finaliza con `Tests passed: build\test_utils.exe`.

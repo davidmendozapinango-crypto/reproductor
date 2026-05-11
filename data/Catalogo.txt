@@ -1,2 +1,3 @@
 Catalogo: The Search - Back in Black - Born For This - Champions League - Danza Kuduro
 Playlist1: Back in Black - Born For This
+PlaylistSmoke: Back in Black - Born For This
