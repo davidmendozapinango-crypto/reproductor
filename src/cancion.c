@@ -106,6 +106,7 @@ static int persistir_lista_en_archivo(const char *ruta_archivo, const char *line
  *
  * @param coleccion Estructura de coleccion a inicializar.
  */
+
 void inicializar_coleccion_musical(ColeccionMusical *coleccion)
 {
     if (coleccion == NULL)
@@ -276,6 +277,7 @@ static int extraer_objetivo_play(
     destino[largo] = '\0';
     return 0;
 }
+
 
 /**
  * @brief Extrae el objetivo del comando queue aceptando formato con o sin comillas.
