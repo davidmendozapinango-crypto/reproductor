@@ -79,7 +79,7 @@ void ui_main(void)
     }
     else
     {
-        set_estado(&ctx, "Coleccion cargada. Usa Ctrl+P para ejecutar comandos.");
+        set_estado(&ctx, "Coleccion cargada. Usa Enter para ejecutar comandos.");
     }
 
     initscr();
@@ -230,20 +230,7 @@ static void handle_input(UiContext *ctx)
             continue;
         }
 
-        if (ch == 16)
-        {
-            if (ctx->comando_len == 0)
-            {
-                set_estado(ctx, "No hay comando para ejecutar.");
-            }
-            else
-            {
-                ejecutar_comando(ctx, ctx->comando);
-                ctx->comando[0] = '\0';
-                ctx->comando_len = 0;
-            }
-            continue;
-        }
+        // Eliminado Ctrl+P (ch == 16) para ejecutar comando, ahora se usa Enter
 
         if (ch == '\n' || ch == KEY_ENTER || ch == '\r')
         {
@@ -261,7 +248,7 @@ static void handle_input(UiContext *ctx)
                     strncpy(ctx->comando, comando_play, sizeof(ctx->comando) - 1);
                     ctx->comando[sizeof(ctx->comando) - 1] = '\0';
                     ctx->comando_len = strlen(ctx->comando);
-                    set_estado(ctx, "Pista seleccionada. Ejecuta con Ctrl+P.");
+                    set_estado(ctx, "Pista seleccionada. Ejecuta con Enter.");
                 }
                 else
                 {
@@ -270,7 +257,9 @@ static void handle_input(UiContext *ctx)
             }
             else
             {
-                set_estado(ctx, "Usa Ctrl+P para ejecutar el comando escrito.");
+                ejecutar_comando(ctx, ctx->comando);
+                ctx->comando[0] = '\0';
+                ctx->comando_len = 0;
             }
             continue;
         }
@@ -565,7 +554,7 @@ static void draw_command_panel(const UiContext *ctx)
     mvwprintw(win_cmd, 1, cmd_x, "comando> %-48.48s", ctx->comando);
     if (cols > 26)
     {
-        mvwprintw(win_cmd, 0, cols - 24, "Ctrl+P: ejecutar");
+        mvwprintw(win_cmd, 0, cols - 20, "Enter: ejecutar");
     }
 
     wrefresh(win_cmd);

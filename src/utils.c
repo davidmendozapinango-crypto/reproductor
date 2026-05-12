@@ -62,34 +62,43 @@ int cargar_coleccion_desde_ruta(
     char *ruta_activa,
     size_t tam_ruta_activa)
 {
-    const char *ruta_por_defecto;
+    const char *rutas_por_defecto[] = {
+        "data/Catalogo.txt",
+        "data/catalog.txt",
+        "../data/Catalogo.txt",
+        "../data/catalog.txt"};
+    const int total_rutas_por_defecto = (int)(sizeof(rutas_por_defecto) / sizeof(rutas_por_defecto[0]));
     const char *ruta_uso;
+    int i;
 
-    ruta_por_defecto = "C:\\Users\\willmendoza\\Documents\\Visual Studio 2022\\repo\\reproductor\\data\\Catalogo.txt";
-    if (ruta_ingresada == NULL || ruta_ingresada[0] == '\0')
+    ruta_uso = NULL;
+    if (ruta_ingresada != NULL && ruta_ingresada[0] != '\0')
     {
-        ruta_uso = ruta_por_defecto;
-    }
-    else
-    {
-        ruta_uso = ruta_ingresada;
-    }
-
-    if (crear_coleccion_desde_archivo(ruta_uso, coleccion) != 0)
-    {
-        if (ruta_uso != ruta_por_defecto)
+        if (crear_coleccion_desde_archivo(ruta_ingresada, coleccion) == 0)
         {
-            printf("No se pudo cargar la ruta indicada. Se intentara con la ruta por defecto.\n");
-            ruta_uso = ruta_por_defecto;
-            if (crear_coleccion_desde_archivo(ruta_uso, coleccion) != 0)
-            {
-                return -1;
-            }
+            ruta_uso = ruta_ingresada;
         }
         else
         {
-            return -1;
+            printf("No se pudo cargar la ruta indicada. Se intentara con la ruta por defecto.\n");
         }
+    }
+
+    if (ruta_uso == NULL)
+    {
+        for (i = 0; i < total_rutas_por_defecto; i++)
+        {
+            if (crear_coleccion_desde_archivo(rutas_por_defecto[i], coleccion) == 0)
+            {
+                ruta_uso = rutas_por_defecto[i];
+                break;
+            }
+        }
+    }
+
+    if (ruta_uso == NULL)
+    {
+        return -1;
     }
 
     if (ruta_activa != NULL && tam_ruta_activa > 0)
