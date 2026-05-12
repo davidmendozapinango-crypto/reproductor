@@ -1,4 +1,7 @@
 #include "utils.h"
+#ifdef REPRODUCTOR_UX
+#include "ui.h"
+#endif
 
 /**
  * @brief Punto de entrada principal de la aplicacion de reproduccion musical.
@@ -10,7 +13,11 @@
  */
 int main(void)
 {
+#ifdef REPRODUCTOR_UX
+    ui_main();
+#else
     imprimir_bienvenida();
     menu();
+#endif
     return 0;
 }

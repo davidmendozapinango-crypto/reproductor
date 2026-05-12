@@ -5,7 +5,7 @@ set "OUT_FILE=build\cli_parser_output.txt"
 set "IN_FILE=build\cli_parser_input.txt"
 set "APP_EXE=build\reproductor_cli_test.exe"
 
-gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude src\main.c src\cancion.c src\utils.c -o "%APP_EXE%"
+gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude src\main.c src\cancion.c src\catalogo.c src\historial.c src\utils.c -o "%APP_EXE%"
 if errorlevel 1 exit /b 1
 
 (

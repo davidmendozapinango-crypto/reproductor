@@ -91,3 +91,7 @@ Resultado esperado:
 - El comando no es reconocido.
     Causa probable: sintaxis incorrecta.
     Solucion: usar solo comandos soportados: `play`, `current`, `catalog`, `lists`, `songs`, `new`, `load`, `q`.
+
+## Ejecutar la aplicacion
+$env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$env:PATH"
+.\build\reproductor-ux.exe

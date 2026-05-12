@@ -8,7 +8,10 @@
       "intelliSenseMode": "windows-gcc-x64",
       "includePath": [
         "${workspaceFolder}/include",
-        "${workspaceFolder}/src"
+        "${workspaceFolder}/src",
+        "C:/msys64/mingw64/include",
+        "C:/msys64/mingw64/include/ncurses",
+        "C:/msys64/mingw64/include/ncursesw"
       ],
       "defines": []
     }
