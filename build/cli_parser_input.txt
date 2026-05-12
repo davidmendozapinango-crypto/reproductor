@@ -1,0 +1,11 @@
+
+back
+play "The Search"
+queue "Back in Black"
+shuffle
+shuffle
+next
+current
+back
+current
+q

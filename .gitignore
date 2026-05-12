@@ -1,4 +1,3 @@
-build/reproductor.exe
+*.exe
 .vscode/tasks.json
 build/main.o
-proyecto.exe

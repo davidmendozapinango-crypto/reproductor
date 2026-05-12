@@ -10,7 +10,7 @@ if /i "%CC1%"=="cc1.exe" (
 	exit /b 1
 )
 
-gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude src\main.c src\utils.c src\cancion.c -o build\reproductor.exe
+gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude src\*.c -o build\reproductor.exe
 if errorlevel 1 exit /b 1
 
 echo Build completed: build\reproductor.exe

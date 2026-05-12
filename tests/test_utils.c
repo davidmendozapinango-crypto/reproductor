@@ -5,6 +5,104 @@
 
 #include "../include/cancion.h"
 
+static int contar_nombre_en_espera(const ListaDoble *lista, const char *nombre)
+{
+    const Cancion *actual;
+    int total;
+
+    if (lista == NULL || nombre == NULL)
+    {
+        return 0;
+    }
+
+    total = 0;
+    actual = lista->cabeza;
+    if (actual != NULL)
+    {
+        actual = actual->sig;
+    }
+
+    while (actual != NULL)
+    {
+        if (strcmp(actual->nombre, nombre) == 0)
+        {
+            total++;
+        }
+        actual = actual->sig;
+    }
+
+    return total;
+}
+
+static void serializar_cola(const ListaDoble *lista, char *buffer, size_t tam_buffer)
+{
+    const Cancion *actual;
+
+    if (buffer == NULL || tam_buffer == 0)
+    {
+        return;
+    }
+
+    buffer[0] = '\0';
+    if (lista == NULL)
+    {
+        return;
+    }
+
+    actual = lista->cabeza;
+    while (actual != NULL)
+    {
+        if (buffer[0] != '\0')
+        {
+            strncat(buffer, "|", tam_buffer - strlen(buffer) - 1);
+        }
+        strncat(buffer, actual->nombre, tam_buffer - strlen(buffer) - 1);
+        actual = actual->sig;
+    }
+}
+
+void test_loop() {
+    ColeccionMusical coleccion;
+    inicializar_coleccion_musical(&coleccion);
+
+    printf("Probando loop activado y desactivado...\n");
+
+    loop(&coleccion);
+    assert(coleccion.lista_reproduccion.loop_activado == 1);
+    printf("Loop activado correctamente.\n");
+
+    loop(&coleccion);
+    assert(coleccion.lista_reproduccion.loop_activado == 0);
+    printf("Loop desactivado correctamente.\n");
+
+    printf("Prueba de loop completada exitosamente.\n");
+}
+
+void test_clear_queue() {
+    ColeccionMusical coleccion;
+    inicializar_coleccion_musical(&coleccion);
+
+    // Agregar canciones a la lista de reproduccion
+    insertar_cancion_final(&coleccion.lista_reproduccion.canciones, "Cancion 1", 200);
+    insertar_cancion_final(&coleccion.lista_reproduccion.canciones, "Cancion 2", 180);
+    insertar_cancion_final(&coleccion.lista_reproduccion.canciones, "Cancion 3", 240);
+
+    printf("Probando clear_queue...\n");
+
+    // Verificar que la lista tiene 3 canciones
+    assert(coleccion.lista_reproduccion.canciones.tamano == 3);
+
+    // Llamar a clear_queue
+    clear_queue(&coleccion);
+
+    // Verificar que solo queda la cancion actual
+    assert(coleccion.lista_reproduccion.canciones.tamano == 1);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(coleccion.lista_reproduccion.canciones.cabeza->sig == NULL);
+
+    printf("clear_queue paso todas las pruebas.\n");
+}
+
 int main(void)
 {
     const char *tmp_path = "tests/tmp_catalogo_test.txt";
@@ -86,6 +184,74 @@ int main(void)
     assert(rc == 0);
     assert(coleccion.lista_reproduccion.canciones.tamano == 2);
     assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+
+    rc = agregar_a_cola_reproduccion(&coleccion, "queue \"cancion3\"");
+    assert(rc == 0);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 3);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->nombre, "cancion3") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->sig->nombre, "cancion2") == 0);
+
+    rc = agregar_a_cola_reproduccion(&coleccion, "queue \"lista pop\"");
+    assert(rc == 0);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 5);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->nombre, "cancion2") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->sig->nombre, "cancion3") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->sig->sig->nombre, "cancion3") == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->sig->sig->sig->sig->nombre, "cancion2") == 0);
+
+    rc = agregar_a_cola_reproduccion(&coleccion, "queue \"sin coincidencia\"");
+    assert(rc == -1);
+
+    /* Regresion: next avanza y actualiza la cola en orden. */
+    rc = reproducir_nueva_cancion_o_lista(&coleccion, "play \"cancion1\"");
+    assert(rc == 0);
+    rc = agregar_a_cola_reproduccion(&coleccion, "queue \"cancion2\"");
+    assert(rc == 0);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+
+    next(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion2") == 0);
+
+    next(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza == NULL);
+
+    back(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion2") == 0);
+
+    back(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+
+    /* Regresion: shuffle mezcla solo la cola en espera y desactivar no altera orden. */
+    rc = reproducir_nueva_cancion_o_lista(&coleccion, "play \"lista rock\"");
+    assert(rc == 0);
+    rc = agregar_a_cola_reproduccion(&coleccion, "queue \"lista pop\"");
+    assert(rc == 0);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 4);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(coleccion.lista_reproduccion.shuffle_activado == 0);
+
+    shuffle(&coleccion);
+    assert(coleccion.lista_reproduccion.shuffle_activado == 1);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 4);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(contar_nombre_en_espera(&coleccion.lista_reproduccion.canciones, "cancion2") == 2);
+    assert(contar_nombre_en_espera(&coleccion.lista_reproduccion.canciones, "cancion3") == 1);
+
+    {
+        char orden_con_shuffle[256];
+        char orden_sin_shuffle[256];
+
+        serializar_cola(&coleccion.lista_reproduccion.canciones, orden_con_shuffle, sizeof(orden_con_shuffle));
+        shuffle(&coleccion);
+        assert(coleccion.lista_reproduccion.shuffle_activado == 0);
+        serializar_cola(&coleccion.lista_reproduccion.canciones, orden_sin_shuffle, sizeof(orden_sin_shuffle));
+        assert(strcmp(orden_con_shuffle, orden_sin_shuffle) == 0);
+    }
 
     mostrar_reproduccion_actual(&coleccion);
 
