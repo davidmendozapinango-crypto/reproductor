@@ -1,4 +1,3 @@
 *.exe
 .vscode/tasks.json
-build/main.o
-build/reproductor-ux
+build/*
