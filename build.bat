@@ -19,12 +19,14 @@ if exist C:\msys64\mingw64\bin\gcc.exe (
 gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude ^
 src\main.c src\utils.c src\cancion.c src\catalogo.c src\historial.c ^
 -o build\reproductor.exe
-if errorlevel 1 exit /b 1
 
+
+if errorlevel 1 exit /b 1
 REM Compilar la version UX con ncurses
 "%UX_GCC%" -Wall -Wextra -std=c11 -O0 -g -Iinclude -IC:\msys64\mingw64\include -IC:\msys64\mingw64\include\ncurses -IC:\msys64\mingw64\include\ncursesw -DREPRODUCTOR_UX ^
 src\main.c src\utils.c src\cancion.c src\catalogo.c src\historial.c src\ui.c ^
 -o build\reproductor-ux.exe -LC:\msys64\mingw64\lib -lncursesw
+
 if errorlevel 1 (
 	"%UX_GCC%" -Wall -Wextra -std=c11 -O0 -g -Iinclude -IC:\msys64\mingw64\include -IC:\msys64\mingw64\include\ncurses -IC:\msys64\mingw64\include\ncursesw -DREPRODUCTOR_UX ^
 	src\main.c src\utils.c src\cancion.c src\catalogo.c src\historial.c src\ui.c ^

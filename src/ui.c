@@ -40,6 +40,7 @@ typedef struct UiContext
 
 static WINDOW *win_artists;
 static WINDOW *win_tracks;
+static WINDOW *win_queue;
 static WINDOW *win_status;
 static WINDOW *win_cmd;
 
@@ -49,6 +50,7 @@ static void handle_input(UiContext *ctx);
 static void redraw_all(const UiContext *ctx);
 static void draw_artists_panel(const UiContext *ctx);
 static void draw_tracks_panel(const UiContext *ctx);
+static void draw_queue_panel(const UiContext *ctx);
 static void draw_status_panel(const UiContext *ctx);
 static void draw_command_panel(const UiContext *ctx);
 static int total_listas_ui(const UiContext *ctx);
@@ -59,6 +61,7 @@ static void ejecutar_comando(UiContext *ctx, const char *comando);
 static void trim_line_end(char *texto);
 static char *skip_leading_space(char *texto);
 static void draw_hotkey(WINDOW *win, int y, int x, char key, const char *label);
+static int procesar_atajo_alt(UiContext *ctx);
 
 void ui_main(void)
 {
@@ -67,7 +70,7 @@ void ui_main(void)
     memset(&ctx, 0, sizeof(ctx));
     inicializar_coleccion_musical(&ctx.coleccion);
     strncpy(ctx.ruta_actual,
-            "C:\\Users\\willmendoza\\Documents\\Visual Studio 2022\\repo\\reproductor\\data\\Catalogo.txt",
+            "data/Catalogo.txt",
             sizeof(ctx.ruta_actual) - 1);
 
     if (cargar_coleccion_desde_ruta(&ctx.coleccion, "", ctx.ruta_actual, sizeof(ctx.ruta_actual)) != 0)
@@ -76,7 +79,7 @@ void ui_main(void)
     }
     else
     {
-        set_estado(&ctx, "Coleccion cargada. Usa Enter para ejecutar comando.");
+        set_estado(&ctx, "Coleccion cargada. Usa Ctrl+P para ejecutar comandos.");
     }
 
     initscr();
@@ -103,6 +106,8 @@ static void draw_layout(void)
     int cols;
     int artists_w;
     int tracks_w;
+    int tracks_h;
+    int queue_h;
     int status_h;
     int cmd_h;
     int main_h;
@@ -114,14 +119,23 @@ static void draw_layout(void)
     cmd_h = 3;
     main_h = rows - status_h - cmd_h;
 
+    tracks_h = (main_h * 2) / 3;
+    if (tracks_h < 6)
+    {
+        tracks_h = main_h / 2;
+    }
+    queue_h = main_h - tracks_h;
+
     win_artists = newwin(main_h, artists_w, 0, 0);
-    win_tracks = newwin(main_h, tracks_w, 0, artists_w);
+    win_tracks = newwin(tracks_h, tracks_w, 0, artists_w);
+    win_queue = newwin(queue_h, tracks_w, tracks_h, artists_w);
     win_status = newwin(status_h, cols, main_h, 0);
     win_cmd = newwin(cmd_h, cols, main_h + status_h, 0);
 
     keypad(win_cmd, TRUE);
     wbkgd(win_artists, COLOR_PAIR(5));
     wbkgd(win_tracks, COLOR_PAIR(5));
+    wbkgd(win_queue, COLOR_PAIR(5));
     wbkgd(win_status, COLOR_PAIR(4));
     wbkgd(win_cmd, COLOR_PAIR(5));
 }
@@ -197,9 +211,12 @@ static void handle_input(UiContext *ctx)
 
         if (ch == 27)
         {
-            ctx->comando[0] = '\0';
-            ctx->comando_len = 0;
-            set_estado(ctx, "Entrada de comando limpiada.");
+            if (!procesar_atajo_alt(ctx))
+            {
+                ctx->comando[0] = '\0';
+                ctx->comando_len = 0;
+                set_estado(ctx, "Entrada de comando limpiada.");
+            }
             continue;
         }
 
@@ -209,6 +226,21 @@ static void handle_input(UiContext *ctx)
             {
                 ctx->comando_len--;
                 ctx->comando[ctx->comando_len] = '\0';
+            }
+            continue;
+        }
+
+        if (ch == 16)
+        {
+            if (ctx->comando_len == 0)
+            {
+                set_estado(ctx, "No hay comando para ejecutar.");
+            }
+            else
+            {
+                ejecutar_comando(ctx, ctx->comando);
+                ctx->comando[0] = '\0';
+                ctx->comando_len = 0;
             }
             continue;
         }
@@ -226,7 +258,10 @@ static void handle_input(UiContext *ctx)
                 if (track != NULL)
                 {
                     snprintf(comando_play, sizeof(comando_play), "play \"%s\"", track->nombre);
-                    ejecutar_comando(ctx, comando_play);
+                    strncpy(ctx->comando, comando_play, sizeof(ctx->comando) - 1);
+                    ctx->comando[sizeof(ctx->comando) - 1] = '\0';
+                    ctx->comando_len = strlen(ctx->comando);
+                    set_estado(ctx, "Pista seleccionada. Ejecuta con Ctrl+P.");
                 }
                 else
                 {
@@ -235,46 +270,9 @@ static void handle_input(UiContext *ctx)
             }
             else
             {
-                ejecutar_comando(ctx, ctx->comando);
+                set_estado(ctx, "Usa Ctrl+P para ejecutar el comando escrito.");
             }
-
-            ctx->comando[0] = '\0';
-            ctx->comando_len = 0;
             continue;
-        }
-
-        if (ctx->comando_len == 0)
-        {
-            if (ch == 'q' || ch == 'Q')
-            {
-                ctx->salir = 1;
-                continue;
-            }
-            if (ch == 'n' || ch == 'N')
-            {
-                ejecutar_comando(ctx, "next");
-                continue;
-            }
-            if (ch == 'b' || ch == 'B')
-            {
-                ejecutar_comando(ctx, "back");
-                continue;
-            }
-            if (ch == 's' || ch == 'S')
-            {
-                ejecutar_comando(ctx, "shuffle");
-                continue;
-            }
-            if (ch == 'l' || ch == 'L')
-            {
-                ejecutar_comando(ctx, "loop");
-                continue;
-            }
-            if (ch == 'c' || ch == 'C')
-            {
-                ejecutar_comando(ctx, "clear_queue");
-                continue;
-            }
         }
 
         if (isprint(ch) && ctx->comando_len < (CMD_MAX_LEN - 1))
@@ -286,10 +284,60 @@ static void handle_input(UiContext *ctx)
     }
 }
 
+static int procesar_atajo_alt(UiContext *ctx)
+{
+    int alt_key;
+
+    wtimeout(win_cmd, 30);
+    alt_key = wgetch(win_cmd);
+    wtimeout(win_cmd, -1);
+
+    if (alt_key == ERR)
+    {
+        return 0;
+    }
+
+    alt_key = tolower(alt_key);
+    if (alt_key == 'b')
+    {
+        ejecutar_comando(ctx, "back");
+        return 1;
+    }
+    if (alt_key == 'n')
+    {
+        ejecutar_comando(ctx, "next");
+        return 1;
+    }
+    if (alt_key == 's')
+    {
+        ejecutar_comando(ctx, "shuffle");
+        return 1;
+    }
+    if (alt_key == 'l')
+    {
+        ejecutar_comando(ctx, "loop");
+        return 1;
+    }
+    if (alt_key == 'c')
+    {
+        ejecutar_comando(ctx, "clear_queue");
+        return 1;
+    }
+    if (alt_key == 'q')
+    {
+        ejecutar_comando(ctx, "quit");
+        return 1;
+    }
+
+    set_estado(ctx, "Atajo ALT no reconocido.");
+    return 1;
+}
+
 static void redraw_all(const UiContext *ctx)
 {
     draw_artists_panel(ctx);
     draw_tracks_panel(ctx);
+    draw_queue_panel(ctx);
     draw_status_panel(ctx);
     draw_command_panel(ctx);
 }
@@ -307,7 +355,7 @@ static void draw_artists_panel(const UiContext *ctx)
     werase(win_artists);
     box(win_artists, 0, 0);
     wattron(win_artists, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(win_artists, 0, 2, " lists ");
+    mvwprintw(win_artists, 0, 2, " listas ");
     wattroff(win_artists, COLOR_PAIR(2) | A_BOLD);
 
     total = total_listas_ui(ctx);
@@ -332,7 +380,7 @@ static void draw_artists_panel(const UiContext *ctx)
     if (ctx->foco_panel == 0)
     {
         wattron(win_artists, COLOR_PAIR(3) | A_BOLD);
-        mvwprintw(win_artists, height - 1, 2, "focus");
+        mvwprintw(win_artists, height - 1, 2, "foco");
         wattroff(win_artists, COLOR_PAIR(3) | A_BOLD);
     }
 
@@ -356,7 +404,7 @@ static void draw_tracks_panel(const UiContext *ctx)
 
     lista = lista_por_indice(ctx, ctx->indice_lista, &nombre_lista);
     wattron(win_tracks, COLOR_PAIR(2) | A_BOLD);
-    mvwprintw(win_tracks, 0, 2, " tracks: %s ", nombre_lista);
+    mvwprintw(win_tracks, 0, 2, " pistas: %s ", nombre_lista);
     wattroff(win_tracks, COLOR_PAIR(2) | A_BOLD);
 
     row = 1;
@@ -393,11 +441,73 @@ static void draw_tracks_panel(const UiContext *ctx)
     if (ctx->foco_panel == 1)
     {
         wattron(win_tracks, COLOR_PAIR(3) | A_BOLD);
-        mvwprintw(win_tracks, height - 1, 2, "focus");
+        mvwprintw(win_tracks, height - 1, 2, "foco");
         wattroff(win_tracks, COLOR_PAIR(3) | A_BOLD);
     }
 
     wrefresh(win_tracks);
+}
+
+static void draw_queue_panel(const UiContext *ctx)
+{
+    int height;
+    int cols;
+    int row;
+    int name_w;
+    const Cancion *actual;
+    int indice;
+
+    getmaxyx(win_queue, height, cols);
+    werase(win_queue);
+    box(win_queue, 0, 0);
+    wattron(win_queue, COLOR_PAIR(2) | A_BOLD);
+    mvwprintw(win_queue, 0, 2, " cola actual ");
+    wattroff(win_queue, COLOR_PAIR(2) | A_BOLD);
+
+    actual = ctx->coleccion.lista_reproduccion.canciones.cabeza;
+    if (actual == NULL)
+    {
+        mvwprintw(win_queue, 1, 2, "Sin canciones en cola.");
+        wrefresh(win_queue);
+        return;
+    }
+
+    row = 1;
+    indice = 0;
+    name_w = (cols > 20) ? (cols - 20) : 8;
+    while (actual != NULL && row < (height - 1))
+    {
+        if (indice == 0)
+        {
+            wattron(win_queue, COLOR_PAIR(3) | A_BOLD);
+            mvwprintw(win_queue,
+                      row,
+                      2,
+                      "> %-*.*s %6.2f",
+                      name_w,
+                      name_w,
+                      actual->nombre,
+                      actual->duracion);
+            wattroff(win_queue, COLOR_PAIR(3) | A_BOLD);
+        }
+        else
+        {
+            mvwprintw(win_queue,
+                      row,
+                      2,
+                      "  %-*.*s %6.2f",
+                      name_w,
+                      name_w,
+                      actual->nombre,
+                      actual->duracion);
+        }
+
+        actual = actual->sig;
+        indice++;
+        row++;
+    }
+
+    wrefresh(win_queue);
 }
 
 static void draw_status_panel(const UiContext *ctx)
@@ -411,20 +521,20 @@ static void draw_status_panel(const UiContext *ctx)
     if (actual != NULL)
     {
         wattron(win_status, COLOR_PAIR(3) | A_BOLD);
-        mvwprintw(win_status, 1, 2, "playing %s (%.2f)", actual->nombre, actual->duracion);
+        mvwprintw(win_status, 1, 2, "reproduciendo %s (%.2f)", actual->nombre, actual->duracion);
         wattroff(win_status, COLOR_PAIR(3) | A_BOLD);
     }
     else
     {
-        mvwprintw(win_status, 1, 2, "playing --");
+        mvwprintw(win_status, 1, 2, "reproduciendo --");
     }
 
     mvwprintw(win_status,
               1,
               46,
-              "shuffle:%s loop:%s",
-              ctx->coleccion.lista_reproduccion.shuffle_activado ? "on" : "off",
-              ctx->coleccion.lista_reproduccion.loop_activado ? "on" : "off");
+              "mezcla:%s bucle:%s",
+              ctx->coleccion.lista_reproduccion.shuffle_activado ? "si" : "no",
+              ctx->coleccion.lista_reproduccion.loop_activado ? "si" : "no");
 
     wrefresh(win_status);
 }
@@ -440,17 +550,24 @@ static void draw_command_panel(const UiContext *ctx)
     (void)rows;
     werase(win_cmd);
     box(win_cmd, 0, 0);
+
     y = 1;
-    draw_hotkey(win_cmd, y, 2, 'b', "back");
-    draw_hotkey(win_cmd, y, 13, 'n', "next");
-    draw_hotkey(win_cmd, y, 24, 's', "shuffle");
-    draw_hotkey(win_cmd, y, 38, 'l', "loop");
-    draw_hotkey(win_cmd, y, 49, 'c', "clear");
-    draw_hotkey(win_cmd, y, 61, 'q', "quit");
+    draw_hotkey(win_cmd, y, 2, 'b', "atras");
+    draw_hotkey(win_cmd, y, 17, 'n', "siguiente");
+    draw_hotkey(win_cmd, y, 36, 's', "mezclar");
+    draw_hotkey(win_cmd, y, 53, 'l', "bucle");
+    draw_hotkey(win_cmd, y, 67, 'c', "limpiar");
+    draw_hotkey(win_cmd, y, 84, 'q', "salir");
+
+    mvwprintw(win_cmd, 0, 2, " %s ", ctx->estado);
 
     cmd_x = (cols > 72) ? (cols / 2) : 40;
-    mvwprintw(win_cmd, 1, cmd_x, "cmd> %-48.48s", ctx->comando);
-    mvwprintw(win_cmd, 0, 2, " %s ", ctx->estado);
+    mvwprintw(win_cmd, 1, cmd_x, "comando> %-48.48s", ctx->comando);
+    if (cols > 26)
+    {
+        mvwprintw(win_cmd, 0, cols - 24, "Ctrl+P: ejecutar");
+    }
+
     wrefresh(win_cmd);
 }
 
@@ -752,10 +869,10 @@ static char *skip_leading_space(char *texto)
 static void draw_hotkey(WINDOW *win, int y, int x, char key, const char *label)
 {
     wattron(win, COLOR_PAIR(1) | A_BOLD);
-    mvwprintw(win, y, x, "[%c]", key);
+    mvwprintw(win, y, x, "[Alt+%c]", key);
     wattroff(win, COLOR_PAIR(1) | A_BOLD);
     wattron(win, COLOR_PAIR(5));
-    mvwprintw(win, y, x + 4, "%s", label);
+    mvwprintw(win, y, x + 8, "%s", label);
     wattroff(win, COLOR_PAIR(5));
 }
 
@@ -768,6 +885,10 @@ static void cleanup(void)
     if (win_tracks != NULL)
     {
         delwin(win_tracks);
+    }
+    if (win_queue != NULL)
+    {
+        delwin(win_queue);
     }
     if (win_status != NULL)
     {

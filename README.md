@@ -34,6 +34,7 @@ Luego, en Ubuntu:
 ```bash
 sudo apt update
 sudo apt install build-essential
+sudo apt-get install libncurses5-dev libncursesw5-dev
 make
 ```
 
@@ -95,3 +96,33 @@ Resultado esperado:
 ## Ejecutar la aplicacion
 $env:PATH = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;$env:PATH"
 .\build\reproductor-ux.exe
+
+
+# Ayuda
+
+Abre la UX:
+
+Escribe el comando en cmd>:
+    play "Back in Black"
+    queue "Born For This"
+    new "RockQA": Back in Black - Born For This
+    songs Playlist1
+
+Presiona Enter para ejecutar.
+Atajos útiles en la UX:
+    Esc: limpia la entrada actual.
+    Backspace: borra caracteres.
+
+Flechas:
+    Izquierda/Derecha: cambia foco entre panel de listas y panel de tracks.
+    Arriba/Abajo: mueve selección.
+
+Enter con cmd> vacío: reproduce el track seleccionado.
+    q o Ctrl + D: salir.
+
+Sugerencia práctica en UX:
+
+Usa catalog para ver canciones válidas.
+Usa lists para ver listas.
+
+Luego ejecuta play, queue, new, songs con nombres exactos.
