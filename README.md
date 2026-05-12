@@ -6,6 +6,7 @@ listas de reproduccion y comandos interactivos por consola.
 
 https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/
 
+https://users.ece.cmu.edu/~eno/coding/CppCodingStandard.html
 ## Build en Windows
 
 Compilar desde la raiz del proyecto:
