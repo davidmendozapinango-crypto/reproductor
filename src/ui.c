@@ -1154,6 +1154,9 @@ static void ui_salida_handler(SalidaNivel nivel, const char *mensaje, void *user
     set_estado_nivel(ctx, nivel, mensaje);
 }
 
+// Esta función prepara la simulación de reproducción de manera NO BLOQUEANTE.
+// Nunca debe bloquear la UI ni impedir la ejecución de otros comandos.
+// Se apoya en avanzar_simulacion_ux(), que es llamada en cada ciclo del loop principal.
 static void simular_reproduccion_ux(UiContext *ctx, int omitir_actual)
 {
     const Cancion *actual;
@@ -1163,6 +1166,8 @@ static void simular_reproduccion_ux(UiContext *ctx, int omitir_actual)
         return;
     }
 
+
+    // Garantiza que la simulación nunca bloquee la UI ni la entrada de comandos.
     liberar_simulacion(ctx);
 
     actual = ctx->coleccion.lista_reproduccion.canciones.cabeza;
@@ -1171,6 +1176,7 @@ static void simular_reproduccion_ux(UiContext *ctx, int omitir_actual)
         actual = actual->sig;
     }
 
+    // Solo prepara la lista de reproducción a simular, sin bucles ni esperas.
     while (actual != NULL)
     {
         if (agregar_snapshost_simulacion(ctx, actual->nombre, actual->duracion) != 0)
@@ -1182,7 +1188,6 @@ static void simular_reproduccion_ux(UiContext *ctx, int omitir_actual)
             set_reproduccion_fuente(ctx, "");
             return;
         }
-
         actual = actual->sig;
     }
 
@@ -1239,6 +1244,9 @@ static void avanzar_simulacion_ux(UiContext *ctx)
     SimTrackSnapshot *siguiente;
     time_t ahora;
 
+
+    // Esta función avanza la simulación de manera NO BLOQUEANTE.
+    // Se llama en cada ciclo del loop principal, nunca bloquea la UI.
     if (ctx == NULL || !ctx->simulacion_activa || ctx->simulacion_actual == NULL)
     {
         return;
@@ -1438,6 +1446,8 @@ static void ejecutar_comando(UiContext *ctx, const char *comando)
         {
             set_reproduccion_estado(ctx, "reproduciendo --");
         }
+        // Reinicia la simulación UX desde la canción actual
+        simular_reproduccion_ux(ctx, 0);
         return;
     }
 
@@ -1458,34 +1468,11 @@ static void ejecutar_comando(UiContext *ctx, const char *comando)
         set_reproduccion_modo(ctx, "LOOP");
         set_reproduccion_fuente(ctx, "LOOP");
 
-        if (ctx->simulacion_activa)
-        {
-            if (ctx->coleccion.lista_reproduccion.loop_activado)
-            {
-                if (ctx->simulacion_actual != NULL)
-                {
-                    ctx->simulacion_punto_loop = ctx->simulacion_actual;
-                }
-                ctx->simulacion_activa = 1;
-                ctx->simulacion_ciclos = 0;
-                set_estado(ctx, "Comando loop ejecutado. Loop anclado al punto actual.");
-            }
-            else
-            {
-                ctx->simulacion_ciclos = ctx->simulacion_ciclo_actual;
-            }
-        }
-        else
-        {
-            if (ctx->coleccion.lista_reproduccion.canciones.cabeza != NULL)
-            {
-                simular_reproduccion_ux(ctx, 0);
-            }
-            else
-            {
-                set_estado_nivel(ctx, SALIDA_NIVEL_ERROR, "No hay canciones para iniciar simulacion en loop.");
-            }
-        }
+        // Reinicia la simulación desde la canción actual
+        simular_reproduccion_ux(ctx, 0);
+
+        // Actualiza los paneles de reproducción y cola
+        redraw_all(ctx);
         return;
     }
 
