@@ -1,6 +1,7 @@
 /*
  * ui.c
- * Interfaz de usuario de terminal con NCURSES.
+ * Este archivo contiene la implementación de la interfaz de usuario basada en terminal utilizando la biblioteca NCURSES.
+ * Proporciona funciones para manejar la entrada del usuario, dibujar paneles y simular la reproducción de canciones.
  */
 #if defined(__has_include)
 #if __has_include(<ncurses.h>)
