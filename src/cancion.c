@@ -7,6 +7,10 @@
 #include "cancion.h"
 #include "historial.h"
 #include "catalogo.h"
+#include "salida.h"
+
+#define LOG_INFO salida_infof
+#define LOG_ERROR salida_errorf
 
 static char *avanzar_espacios(char *texto);
 static void recortar_derecha(char *texto);
@@ -55,7 +59,7 @@ static int persistir_lista_en_archivo(const char *ruta_archivo, const char *line
     archivo = fopen(ruta_archivo, "rb");
     if (archivo == NULL)
     {
-        printf("Error: no se pudo abrir el archivo para verificar el final de linea.\n");
+        LOG_ERROR("Error: no se pudo abrir el archivo para verificar el final de linea.\n");
         return -1;
     }
 
@@ -79,21 +83,21 @@ static int persistir_lista_en_archivo(const char *ruta_archivo, const char *line
     archivo = fopen(ruta_archivo, "a");
     if (archivo == NULL)
     {
-        printf("Error: no se pudo abrir el archivo para guardar la nueva lista.\n");
+        LOG_ERROR("Error: no se pudo abrir el archivo para guardar la nueva lista.\n");
         return -1;
     }
 
     if (necesita_salto_linea && fprintf(archivo, "\n") < 0)
     {
         fclose(archivo);
-        printf("Error: no se pudo preparar el archivo para anexar la nueva lista.\n");
+        LOG_ERROR("Error: no se pudo preparar el archivo para anexar la nueva lista.\n");
         return -1;
     }
 
     if (fprintf(archivo, "%s\n", linea) < 0)
     {
         fclose(archivo);
-        printf("Error: no se pudo persistir la nueva lista en el archivo.\n");
+        LOG_ERROR("Error: no se pudo persistir la nueva lista en el archivo.\n");
         return -1;
     }
 
@@ -448,7 +452,7 @@ Cancion *crear_cancion(const char *nombre_pista, float duracion_pista)
     nueva = (Cancion *)malloc(sizeof(Cancion));
     if (nueva == NULL)
     {
-        printf("Error: No hay memoria suficiente para crear la cancion.\n");
+        LOG_ERROR("Error: No hay memoria suficiente para crear la cancion.\n");
         return NULL;
     }
 
@@ -524,10 +528,10 @@ int cargar_catalogo_y_listas(const char *ruta_archivo)
         lista_actual = lista_actual->sig;
     }
 
-    printf("Carga completada desde: %s\n", ruta_archivo);
-    printf("- Canciones en catalogo: %d\n", coleccion.catalogo.tamano);
-    printf("- Listas detectadas: %d\n", coleccion.total_listas);
-    printf("- Canciones dentro de listas: %d\n", total_canciones_listas);
+    LOG_INFO("Carga completada desde: %s\n", ruta_archivo);
+    LOG_INFO("- Canciones en catalogo: %d\n", coleccion.catalogo.tamano);
+    LOG_INFO("- Listas detectadas: %d\n", coleccion.total_listas);
+    LOG_INFO("- Canciones dentro de listas: %d\n", total_canciones_listas);
 
     liberar_coleccion_musical(&coleccion);
 
@@ -725,7 +729,7 @@ int crear_coleccion_desde_archivo(const char *ruta_archivo, ColeccionMusical *co
     archivo = fopen(ruta_archivo, "r");
     if (archivo == NULL)
     {
-        printf("Error: no se pudo abrir el archivo en la ruta indicada.\n");
+        LOG_ERROR("Error: no se pudo abrir el archivo en la ruta indicada.\n");
         return -1;
     }
 
@@ -842,14 +846,14 @@ void mostrar_reproduccion_actual(const ColeccionMusical *coleccion)
 
     if (coleccion == NULL)
     {
-        printf("No hay coleccion cargada.\n");
+        LOG_ERROR("No hay coleccion cargada.\n");
         return;
     }
 
-    printf("=== REPRODUCCION ACTUAL ===\n");
+    LOG_INFO("=== REPRODUCCION ACTUAL ===\n");
     if (coleccion->lista_reproduccion.canciones.cabeza == NULL)
     {
-        printf("No hay reproduccion activa.\n");
+        LOG_INFO("No hay reproduccion activa.\n");
         return;
     }
 
@@ -859,11 +863,11 @@ void mostrar_reproduccion_actual(const ColeccionMusical *coleccion)
     {
         if (indice == 1)
         {
-            printf("Actual: %s\n", actual->nombre);
+            LOG_INFO("Actual: %s\n", actual->nombre);
         }
         else
         {
-            printf("En cola: %s\n", actual->nombre);
+            LOG_INFO("En cola: %s\n", actual->nombre);
         }
 
         actual = actual->sig;
@@ -891,21 +895,21 @@ int reproducir_nueva_cancion_o_lista(ColeccionMusical *coleccion, const char *co
 
     if (extraer_objetivo_play(comando_play, objetivo, sizeof(objetivo)) != 0)
     {
-        printf("Error: El comando 'play' requiere un nombre válido.\n");
+        LOG_ERROR("Error: El comando 'play' requiere un nombre válido.\n");
         return -1;
     }
 
     lista = buscar_lista(coleccion, objetivo);
     if (lista != NULL)
     {
-        printf("Reproduciendo lista: %s\n", objetivo);
+        LOG_INFO("Reproduciendo lista: %s\n", objetivo);
         return cargar_lista_en_reproduccion(coleccion, lista);
     }
 
     cancion = buscar_cancion_en_catalogo(&coleccion->catalogo, objetivo);
     if (cancion != NULL)
     {
-        printf("Reproduciendo canción: %s\n", cancion->nombre);
+        LOG_INFO("Reproduciendo canción: %s\n", cancion->nombre);
         limpiar_lista_reproduccion(coleccion);
         coleccion->lista_reproduccion.shuffle_activado = 0;
         return insertar_cancion_final(
@@ -914,7 +918,7 @@ int reproducir_nueva_cancion_o_lista(ColeccionMusical *coleccion, const char *co
             cancion->duracion);
     }
 
-    printf("Error: No se encontró '%s' en el catálogo o las listas.\n", objetivo);
+    LOG_ERROR("Error: No se encontró '%s' en el catálogo o las listas.\n", objetivo);
     return -1;
 }
 
@@ -940,7 +944,7 @@ int agregar_a_cola_reproduccion(ColeccionMusical *coleccion, const char *comando
 
     if (extraer_objetivo_queue(comando_queue, objetivo, sizeof(objetivo)) != 0)
     {
-        printf("Uso: queue \"nombre\"\n");
+        LOG_ERROR("Uso: queue \"nombre\"\n");
         return -1;
     }
 
@@ -965,7 +969,7 @@ int agregar_a_cola_reproduccion(ColeccionMusical *coleccion, const char *comando
         cancion = buscar_cancion_en_catalogo(&coleccion->catalogo, objetivo);
         if (cancion == NULL)
         {
-            printf("No se encontro la cancion o lista '%s'.\n", objetivo);
+            LOG_ERROR("No se encontro la cancion o lista '%s'.\n", objetivo);
             return -1;
         }
 
@@ -981,7 +985,7 @@ int agregar_a_cola_reproduccion(ColeccionMusical *coleccion, const char *comando
         return -1;
     }
 
-    printf("Se agrego '%s' a la cola de reproduccion.\n", objetivo);
+    LOG_INFO("Se agrego '%s' a la cola de reproduccion.\n", objetivo);
     mostrar_reproduccion_actual(coleccion);
     return 0;
 }
@@ -998,14 +1002,14 @@ void mostrar_catalogo(const ColeccionMusical *coleccion)
 
     if (coleccion == NULL)
     {
-        printf("Catalogo no disponible.\n");
+        LOG_ERROR("Catalogo no disponible.\n");
         return;
     }
 
-    printf("=== CATALOGO ===\n");
+    LOG_INFO("=== CATALOGO ===\n");
     if (coleccion->catalogo.cabeza == NULL)
     {
-        printf("Catalogo vacio.\n");
+        LOG_INFO("Catalogo vacio.\n");
         return;
     }
 
@@ -1013,7 +1017,7 @@ void mostrar_catalogo(const ColeccionMusical *coleccion)
     indice = 1;
     while (actual != NULL)
     {
-        printf("%d. %s\n", indice, actual->nombre);
+        LOG_INFO("%d. %s\n", indice, actual->nombre);
         actual = actual->sig;
         indice++;
     }
@@ -1031,14 +1035,14 @@ void listar_listas_disponibles(const ColeccionMusical *coleccion)
 
     if (coleccion == NULL)
     {
-        printf("No hay coleccion cargada.\n");
+        LOG_ERROR("No hay coleccion cargada.\n");
         return;
     }
 
-    printf("=== LISTAS DISPONIBLES ===\n");
+    LOG_INFO("=== LISTAS DISPONIBLES ===\n");
     if (coleccion->listas == NULL)
     {
-        printf("No hay listas registradas.\n");
+        LOG_INFO("No hay listas registradas.\n");
         return;
     }
 
@@ -1046,7 +1050,7 @@ void listar_listas_disponibles(const ColeccionMusical *coleccion)
     indice = 1;
     while (actual != NULL)
     {
-        printf("%d. %s (%d canciones)\n", indice, actual->nombre, actual->canciones.tamano);
+        LOG_INFO("%d. %s (%d canciones)\n", indice, actual->nombre, actual->canciones.tamano);
         actual = actual->sig;
         indice++;
     }
@@ -1082,14 +1086,14 @@ int listar_canciones_de_lista(const ColeccionMusical *coleccion, const char *nom
 
     if (lista == NULL)
     {
-        printf("La lista '%s' no existe.\n", nombre_lista);
+        LOG_ERROR("La lista '%s' no existe.\n", nombre_lista);
         return -1;
     }
 
-    printf("=== CANCIONES DE %s ===\n", lista->nombre);
+    LOG_INFO("=== CANCIONES DE %s ===\n", lista->nombre);
     if (lista->canciones.cabeza == NULL)
     {
-        printf("La lista esta vacia.\n");
+        LOG_INFO("La lista esta vacia.\n");
         return 0;
     }
 
@@ -1097,7 +1101,7 @@ int listar_canciones_de_lista(const ColeccionMusical *coleccion, const char *nom
     indice = 1;
     while (cancion != NULL)
     {
-        printf("%d. %s\n", indice, cancion->nombre);
+        LOG_INFO("%d. %s\n", indice, cancion->nombre);
         cancion = cancion->sig;
         indice++;
     }
@@ -1141,7 +1145,7 @@ int cargar_nueva_lista_en_ejecucion(
     cursor = avanzar_espacios(buffer_comando);
     if (strncmp(cursor, "new", 3) != 0)
     {
-        printf("Error: comando invalido. Use: new \"nombre\": cancion1 - cancion2\n");
+        LOG_ERROR("Error: comando invalido. Use: new \"nombre\": cancion1 - cancion2\n");
         return -1;
     }
     cursor += 3;
@@ -1154,7 +1158,7 @@ int cargar_nueva_lista_en_ejecucion(
         nombre_lista_fin = strchr(nombre_lista_ini, '"');
         if (nombre_lista_fin == NULL)
         {
-            printf("Error: faltan comillas de cierre en el nombre de la lista.\n");
+            LOG_ERROR("Error: faltan comillas de cierre en el nombre de la lista.\n");
             return -1;
         }
         *nombre_lista_fin = '\0';
@@ -1172,7 +1176,7 @@ int cargar_nueva_lista_en_ejecucion(
 
     if (separador == NULL)
     {
-        printf("Error: formato invalido. Use: new \"nombre\": cancion1 - cancion2\n");
+        LOG_ERROR("Error: formato invalido. Use: new \"nombre\": cancion1 - cancion2\n");
         return -1;
     }
 
@@ -1181,20 +1185,20 @@ int cargar_nueva_lista_en_ejecucion(
     recortar_derecha(nombre_lista);
     if (nombre_lista[0] == '\0')
     {
-        printf("Error: el nombre de la lista no puede estar vacio.\n");
+        LOG_ERROR("Error: el nombre de la lista no puede estar vacio.\n");
         return -1;
     }
 
     if (buscar_lista(coleccion, nombre_lista) != NULL)
     {
-        printf("Error: la lista '%s' ya existe.\n", nombre_lista);
+        LOG_ERROR("Error: la lista '%s' ya existe.\n", nombre_lista);
         return -1;
     }
 
     nueva_lista = (NodoListaReproduccion *)malloc(sizeof(NodoListaReproduccion));
     if (nueva_lista == NULL)
     {
-        printf("Error: no hay memoria para crear una nueva lista.\n");
+        LOG_ERROR("Error: no hay memoria para crear una nueva lista.\n");
         return -1;
     }
 
@@ -1220,7 +1224,7 @@ int cargar_nueva_lista_en_ejecucion(
         {
             if (!cancion_existe_en_catalogo(&coleccion->catalogo, cancion))
             {
-                printf("Error: la cancion '%s' no existe en el catalogo.\n", cancion);
+                LOG_ERROR("Error: la cancion '%s' no existe en el catalogo.\n", cancion);
                 vaciar_repro(&nueva_lista->canciones);
                 
                 return -1;
@@ -1240,7 +1244,7 @@ int cargar_nueva_lista_en_ejecucion(
 
     if (canciones_agregadas == 0)
     {
-        printf("Error: la lista debe contener al menos una cancion valida.\n");
+        LOG_ERROR("Error: la lista debe contener al menos una cancion valida.\n");
         
         return -1;
     }
@@ -1278,7 +1282,7 @@ int cargar_nueva_lista_en_ejecucion(
     coleccion->listas = nueva_lista;
     coleccion->total_listas++;
 
-    printf("Lista '%s' cargada correctamente en ejecucion.\n", nombre_lista);
+    LOG_INFO("Lista '%s' cargada correctamente en ejecucion.\n", nombre_lista);
     return 0;
 }
 
@@ -1294,10 +1298,10 @@ void loop(ColeccionMusical *coleccion) {
 
     if (coleccion->lista_reproduccion.loop_activado) {
         coleccion->lista_reproduccion.loop_activado = 0;
-        printf("Loop desactivado.\n");
+        LOG_INFO("Loop desactivado.\n");
     } else {
         coleccion->lista_reproduccion.loop_activado = 1;
-        printf("Loop activado.\n");
+        LOG_INFO("Loop activado.\n");
     }
 }
 
@@ -1315,14 +1319,14 @@ void next(ColeccionMusical *coleccion) {
     }
 
     if (coleccion->lista_reproduccion.canciones.cabeza == NULL) {
-        printf("No hay canciones en la cola de reproduccion.\n");
+        LOG_INFO("No hay canciones en la cola de reproduccion.\n");
         return;
     }
 
     cancion_actual = coleccion->lista_reproduccion.canciones.cabeza;
     nuevo_nodo = (NodoPila *)malloc(sizeof(NodoPila));
     if (nuevo_nodo == NULL) {
-        printf("Error: no hay memoria para actualizar el historial.\n");
+        LOG_ERROR("Error: no hay memoria para actualizar el historial.\n");
         return;
     }
 
@@ -1346,12 +1350,35 @@ void next(ColeccionMusical *coleccion) {
     free(cancion_actual);
 
     if (coleccion->lista_reproduccion.canciones.cabeza != NULL) {
-        printf("Reproduciendo siguiente cancion: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        LOG_INFO("Reproduciendo siguiente cancion: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
     } else if (coleccion->lista_reproduccion.loop_activado) {
-        coleccion->lista_reproduccion.canciones.cabeza = coleccion->lista_reproduccion.canciones.cola;
-        printf("Reiniciando lista en modo loop: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        NodoPila *cursor;
+
+        cursor = coleccion->lista_reproduccion.historial.tope;
+        while (cursor != NULL)
+        {
+            if (insertar_cancion_inicio(
+                    &coleccion->lista_reproduccion.canciones,
+                    cursor->nombre,
+                    cursor->duracion) != 0)
+            {
+                LOG_ERROR("Error: no se pudo reiniciar la cola en modo loop.\n");
+                return;
+            }
+            cursor = cursor->next;
+        }
+
+        limpiar_historial_reproduccion(&coleccion->lista_reproduccion.historial);
+        if (coleccion->lista_reproduccion.canciones.cabeza != NULL)
+        {
+            LOG_INFO("Reiniciando lista en modo loop: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        }
+        else
+        {
+            LOG_INFO("No hay canciones para reiniciar en modo loop.\n");
+        }
     } else {
-        printf("No hay mas canciones en la cola de reproduccion.\n");
+        LOG_INFO("No hay mas canciones en la cola de reproduccion.\n");
     }
 }
 
@@ -1373,7 +1400,7 @@ void back(ColeccionMusical *coleccion)
     ultimo = coleccion->lista_reproduccion.historial.tope;
     if (ultimo == NULL)
     {
-        printf("No hay canciones en el historial de reproduccion.\n");
+        LOG_INFO("No hay canciones en el historial de reproduccion.\n");
         return;
     }
 
@@ -1383,12 +1410,12 @@ void back(ColeccionMusical *coleccion)
         ultimo->duracion);
     if (rc != 0)
     {
-        printf("Error: no se pudo recuperar la cancion del historial.\n");
+        LOG_ERROR("Error: no se pudo recuperar la cancion del historial.\n");
         return;
     }
 
     coleccion->lista_reproduccion.historial.tope = ultimo->next;
-    printf("Reproduciendo cancion anterior: %s\n", ultimo->nombre);
+    LOG_INFO("Reproduciendo cancion anterior: %s\n", ultimo->nombre);
     free(ultimo);
 }
 
@@ -1414,20 +1441,20 @@ void shuffle(ColeccionMusical *coleccion)
     if (coleccion->lista_reproduccion.shuffle_activado)
     {
         coleccion->lista_reproduccion.shuffle_activado = 0;
-        printf("Shuffle desactivado. Se mantiene el orden actual.\n");
+        LOG_INFO("Shuffle desactivado. Se mantiene el orden actual.\n");
         return;
     }
 
     reproduccion = &coleccion->lista_reproduccion.canciones;
     if (reproduccion->cabeza == NULL)
     {
-        printf("No hay canciones en la cola de reproduccion.\n");
+        LOG_INFO("No hay canciones en la cola de reproduccion.\n");
         return;
     }
 
     if (reproduccion->cabeza->sig == NULL)
     {
-        printf("No hay canciones en espera para mezclar.\n");
+        LOG_INFO("No hay canciones en espera para mezclar.\n");
         return;
     }
 
@@ -1435,14 +1462,14 @@ void shuffle(ColeccionMusical *coleccion)
     if (cantidad_en_cola <= 1)
     {
         coleccion->lista_reproduccion.shuffle_activado = 1;
-        printf("Shuffle activado. Cola en espera mezclada.\n");
+        LOG_INFO("Shuffle activado. Cola en espera mezclada.\n");
         return;
     }
 
     nodos = (Cancion **)malloc((size_t)cantidad_en_cola * sizeof(Cancion *));
     if (nodos == NULL)
     {
-        printf("Error: no hay memoria para aplicar shuffle.\n");
+        LOG_ERROR("Error: no hay memoria para aplicar shuffle.\n");
         return;
     }
 
@@ -1485,7 +1512,7 @@ void shuffle(ColeccionMusical *coleccion)
     coleccion->lista_reproduccion.shuffle_activado = 1;
     free(nodos);
 
-    printf("Shuffle activado. Cola en espera mezclada.\n");
+    LOG_INFO("Shuffle activado. Cola en espera mezclada.\n");
 }
 
 /**
@@ -1495,9 +1522,9 @@ void shuffle(ColeccionMusical *coleccion)
  */
 void reproducir_cancion(ColeccionMusical *coleccion) {
     if (coleccion->lista_reproduccion.canciones.cabeza) {
-        printf("Reproduciendo: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        LOG_INFO("Reproduciendo: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
     } else {
-        printf("No hay canciones en la lista de reproducción.\n");
+        LOG_INFO("No hay canciones en la lista de reproducción.\n");
     }
 }
 
@@ -1508,7 +1535,7 @@ void reproducir_cancion(ColeccionMusical *coleccion) {
  */
 void clear_queue(ColeccionMusical *coleccion) {
     if (coleccion == NULL || coleccion->lista_reproduccion.canciones.cabeza == NULL) {
-        printf("La lista de reproduccion ya esta vacia.\n");
+        LOG_INFO("La lista de reproduccion ya esta vacia.\n");
         return;
     }
 
@@ -1525,5 +1552,5 @@ void clear_queue(ColeccionMusical *coleccion) {
     coleccion->lista_reproduccion.canciones.cabeza->sig = NULL;
     coleccion->lista_reproduccion.canciones.tamano = 1;
 
-    printf("La lista de reproduccion ha sido limpiada, manteniendo la cancion actual.\n");
+    LOG_INFO("La lista de reproduccion ha sido limpiada, manteniendo la cancion actual.\n");
 }

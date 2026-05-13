@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude tests\test_utils.c src\cancion.c src\catalogo.c src\historial.c src\utils.c -o build\test_utils.exe
+gcc -Wall -Wextra -std=c11 -O0 -g -Iinclude tests\test_utils.c src\cancion.c src\catalogo.c src\historial.c src\utils.c src\salida.c -o build\test_utils.exe
 if errorlevel 1 exit /b 1
 
 build\test_utils.exe
@@ -17,7 +17,7 @@ if exist C:\msys64\mingw64\bin\gcc.exe (
 )
 
 "%UX_GCC%" -Wall -Wextra -std=c11 -O0 -g -Iinclude -IC:\msys64\mingw64\include -IC:\msys64\mingw64\include\ncurses -IC:\msys64\mingw64\include\ncursesw ^
-tests\test_ui_commands.c src\ui.c src\cancion.c src\catalogo.c src\historial.c src\utils.c ^
+tests\test_ui_commands.c src\ui.c src\cancion.c src\catalogo.c src\historial.c src\utils.c src\salida.c ^
 -o build\test_ui_commands.exe -LC:\msys64\mingw64\lib -lncursesw
 if errorlevel 1 exit /b 1
 

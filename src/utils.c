@@ -3,6 +3,10 @@
 #include <ctype.h>
 #include "utils.h"
 #include "cancion.h"
+#include "salida.h"
+
+#define LOG_INFO salida_infof
+#define LOG_ERROR salida_errorf
 
 /**
  * @brief Elimina saltos de linea y retorno de carro al final de una cadena.
@@ -80,7 +84,7 @@ int cargar_coleccion_desde_ruta(
         }
         else
         {
-            printf("No se pudo cargar la ruta indicada. Se intentara con la ruta por defecto.\n");
+            LOG_ERROR("No se pudo cargar la ruta indicada. Se intentara con la ruta por defecto.\n");
         }
     }
 
@@ -115,7 +119,7 @@ int cargar_coleccion_desde_ruta(
  */
 void imprimir_bienvenida(void)
 {
-    printf("=== Proyecto C Profesional ===\n");
+    LOG_INFO("=== Proyecto C Profesional ===\n");
 }
 
 /**
@@ -131,12 +135,12 @@ void menu(void)
     char ruta_actual[512];
     ColeccionMusical coleccion;
 
-    printf("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
+    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
 
-    printf("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
+    LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
     if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
     {
-        printf("Error al leer la ruta desde terminal.\n");
+        LOG_ERROR("Error al leer la ruta desde terminal.\n");
         return;
     }
 
@@ -146,13 +150,13 @@ void menu(void)
         return;
     }
 
-    printf("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
+    LOG_INFO("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
 
     while (1)
     {
         char *parametro;
 
-        printf("> ");
+        LOG_INFO("> ");
         if (fgets(comando, sizeof(comando), stdin) == NULL)
         {
             break;
@@ -182,7 +186,7 @@ void menu(void)
             }
             else
             {
-                printf("Error: El comando 'queue' requiere un argumento.\n");
+                LOG_ERROR("Error: El comando 'queue' requiere un argumento.\n");
             }
         }
         else if (strcmp(parametro, "current") == 0)
@@ -217,7 +221,7 @@ void menu(void)
             nombre_lista = skip_leading_space(nombre_lista);
             if (*nombre_lista == '\0')
             {
-                printf("Uso: songs <nombre_lista>\n");
+                LOG_ERROR("Uso: songs <nombre_lista>\n");
             }
             else
             {
@@ -230,10 +234,10 @@ void menu(void)
         }
         else if (strcmp(parametro, "load") == 0)
         {
-            printf("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
+            LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
             if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
             {
-                printf("Error al leer la ruta desde terminal.\n");
+                LOG_ERROR("Error al leer la ruta desde terminal.\n");
                 continue;
             }
 
@@ -241,15 +245,15 @@ void menu(void)
             liberar_coleccion_musical(&coleccion);
             if (cargar_coleccion_desde_ruta(&coleccion, ruta_ingresada, ruta_actual, sizeof(ruta_actual)) != 0)
             {
-                printf("No se pudo cargar la coleccion solicitada.\n");
+                LOG_ERROR("No se pudo cargar la coleccion solicitada.\n");
                 continue;
             }
 
-            printf("Coleccion cargada desde: %s\n", ruta_actual);
+            LOG_INFO("Coleccion cargada desde: %s\n", ruta_actual);
         }
         else
         {
-            printf("Comando no reconocido. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2, load o q.\n");
+            LOG_ERROR("Comando no reconocido. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2, load o q.\n");
         }
     }
 
@@ -260,13 +264,13 @@ void menu(void)
  * @brief Muestra un menu numerado simplificado de opciones.
  */
 void mostrar_menu() {
-    printf("Opciones:\n");
-    printf("1. Cargar colección\n");
-    printf("2. Reproducir canción\n");
-    printf("3. Mostrar canción actual\n");
-    printf("4. Agregar a la cola\n");
-    printf("5. Siguiente canción\n"); // Added next command
-    printf("6. Salir\n");
+    LOG_INFO("Opciones:\n");
+    LOG_INFO("1. Cargar colección\n");
+    LOG_INFO("2. Reproducir canción\n");
+    LOG_INFO("3. Mostrar canción actual\n");
+    LOG_INFO("4. Agregar a la cola\n");
+    LOG_INFO("5. Siguiente canción\n"); // Added next command
+    LOG_INFO("6. Salir\n");
 }
 
 /**
@@ -291,7 +295,7 @@ void procesar_opcion(int opcion, ColeccionMusical *coleccion) {
             if (nueva_cancion) {
                 agregar_a_cola(coleccion, nueva_cancion);
             } else {
-                printf("Error: No se pudo crear la canción.\n");
+                LOG_ERROR("Error: No se pudo crear la canción.\n");
             }
             break;
         }
@@ -299,10 +303,10 @@ void procesar_opcion(int opcion, ColeccionMusical *coleccion) {
             next(coleccion); // Added next command handling
             break;
         case 6:
-            printf("Saliendo...\n");
+            LOG_INFO("Saliendo...\n");
             break;
         default:
-            printf("Opción no válida.\n");
+            LOG_ERROR("Opción no válida.\n");
             break;
     }
 }
@@ -314,9 +318,9 @@ void procesar_opcion(int opcion, ColeccionMusical *coleccion) {
  */
 void mostrar_cancion_actual(const ColeccionMusical *coleccion) {
     if (coleccion->lista_reproduccion.canciones.cabeza) {
-        printf("Canción actual: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        LOG_INFO("Canción actual: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
     } else {
-        printf("No hay canción en reproducción.\n");
+        LOG_INFO("No hay canción en reproducción.\n");
     }
 }
 
@@ -364,6 +368,6 @@ void procesar_comando(const char *comando, ColeccionMusical *coleccion) {
     } else if (strcmp(comando, "clear queue") == 0) {
         clear_queue(coleccion);
     } else {
-        printf("Comando no reconocido: %s\n", comando);
+        LOG_ERROR("Comando no reconocido: %s\n", comando);
     }
 }

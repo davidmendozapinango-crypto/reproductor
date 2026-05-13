@@ -226,6 +226,28 @@ int main(void)
     assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
     assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
 
+    /* Regresion: loop reinicia la cola al finalizar con next. */
+    rc = reproducir_nueva_cancion_o_lista(&coleccion, "play \"lista rock\"");
+    assert(rc == 0);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 2);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(coleccion.lista_reproduccion.loop_activado == 0);
+
+    loop(&coleccion);
+    assert(coleccion.lista_reproduccion.loop_activado == 1);
+
+    next(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion2") == 0);
+
+    next(&coleccion);
+    assert(coleccion.lista_reproduccion.canciones.cabeza != NULL);
+    assert(strcmp(coleccion.lista_reproduccion.canciones.cabeza->nombre, "cancion1") == 0);
+    assert(coleccion.lista_reproduccion.canciones.tamano == 2);
+
+    loop(&coleccion);
+    assert(coleccion.lista_reproduccion.loop_activado == 0);
+
     /* Regresion: shuffle mezcla solo la cola en espera y desactivar no altera orden. */
     rc = reproducir_nueva_cancion_o_lista(&coleccion, "play \"lista rock\"");
     assert(rc == 0);

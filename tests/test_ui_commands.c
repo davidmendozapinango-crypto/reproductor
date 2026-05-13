@@ -13,6 +13,7 @@ int main(void)
     assert(ui_is_predefined_command("catalog") == 1);
     assert(ui_is_predefined_command("lists") == 1);
     assert(ui_is_predefined_command("load") == 1);
+    assert(ui_is_predefined_command("load data/Catalogo.txt") == 1);
     assert(ui_is_predefined_command("play \"The Search\"") == 1);
     assert(ui_is_predefined_command("queue \"Back in Black\"") == 1);
     assert(ui_is_predefined_command("songs Playlist1") == 1);

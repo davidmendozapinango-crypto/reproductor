@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "salida.h"
 #ifdef REPRODUCTOR_UX
 #include "ui.h"
 #endif
@@ -14,8 +15,10 @@
 int main(void)
 {
 #ifdef REPRODUCTOR_UX
+    salida_set_modo(SALIDA_MODO_UX);
     ui_main();
 #else
+    salida_set_modo(SALIDA_MODO_CLI);
     imprimir_bienvenida();
     menu();
 #endif

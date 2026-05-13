@@ -4,8 +4,10 @@ Proyecto en C para simular un motor de reproduccion musical con catalogo global,
 listas de reproduccion y comandos interactivos por consola.
 ## Librerias
 
+### Libreria NCURSES
 https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/
 
+### Estandar de Codificacion en C
 https://users.ece.cmu.edu/~eno/coding/CppCodingStandard.html
 ## Build en Windows
 
