@@ -829,7 +829,6 @@ void liberar_coleccion_musical(ColeccionMusical *coleccion)
         free(actual);
         actual = siguiente;
     }
-
     coleccion->listas = NULL;
     coleccion->total_listas = 0;
 }
@@ -1353,6 +1352,10 @@ void next(ColeccionMusical *coleccion) {
         LOG_INFO("Reproduciendo siguiente cancion: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
     } else if (coleccion->lista_reproduccion.loop_activado) {
         NodoPila *cursor;
+
+        coleccion->lista_reproduccion.canciones.cabeza = NULL;
+        coleccion->lista_reproduccion.canciones.cola = NULL;
+        coleccion->lista_reproduccion.canciones.tamano = 0;
 
         cursor = coleccion->lista_reproduccion.historial.tope;
         while (cursor != NULL)

@@ -135,7 +135,7 @@ void menu(void)
     char ruta_actual[512];
     ColeccionMusical coleccion;
 
-    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
+    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - - loop\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
 
     LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
     if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
@@ -231,6 +231,18 @@ void menu(void)
         else if (strncmp(parametro, "new", 3) == 0)
         {
             (void)cargar_nueva_lista_en_ejecucion(&coleccion, ruta_actual, parametro);
+        }
+        //Ultima modificacion del loop en la version de impresion
+        else if (strcmp(comando, "loop") == 0)
+        {
+            // Cambiamos el estado del loop (si es 0 pasa a 1, si es 1 pasa a 0)
+            coleccion.lista_reproduccion.loop_activado = !coleccion.lista_reproduccion.loop_activado;
+            
+            if (coleccion.lista_reproduccion.loop_activado) {
+                printf("\n[LOOP] Modo bucle: ACTIVADO.\n");
+            } else {
+                printf("\n[LOOP] Modo bucle: DESACTIVADO.\n");
+            }
         }
         else if (strcmp(parametro, "load") == 0)
         {
