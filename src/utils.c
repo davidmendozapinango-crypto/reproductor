@@ -135,7 +135,7 @@ void menu(void)
     char ruta_actual[512];
     ColeccionMusical coleccion;
 
-    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
+    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - shuffle\n - loop\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
 
     LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
     if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
@@ -150,7 +150,7 @@ void menu(void)
         return;
     }
 
-    LOG_INFO("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
+LOG_INFO("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, loop, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
 
     while (1)
     {
@@ -253,7 +253,7 @@ void menu(void)
         }
         else
         {
-            LOG_ERROR("Comando no reconocido. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2, load o q.\n");
+            LOG_ERROR("Comando no reconocido. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, loop, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2, load o q.\n");
         }
     }
 
@@ -270,7 +270,8 @@ void mostrar_menu() {
     LOG_INFO("3. Mostrar canción actual\n");
     LOG_INFO("4. Agregar a la cola\n");
     LOG_INFO("5. Siguiente canción\n"); // Added next command
-    LOG_INFO("6. Salir\n");
+    LOG_INFO("6. Alternar loop\n");
+    LOG_INFO("7. Salir\n");
 }
 
 /**
@@ -303,6 +304,9 @@ void procesar_opcion(int opcion, ColeccionMusical *coleccion) {
             next(coleccion); // Added next command handling
             break;
         case 6:
+            loop(coleccion);
+            break;
+        case 7:
             LOG_INFO("Saliendo...\n");
             break;
         default:
