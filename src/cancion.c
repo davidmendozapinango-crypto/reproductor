@@ -1323,6 +1323,11 @@ void next(ColeccionMusical *coleccion) {
         return;
     }
 
+    if (coleccion->lista_reproduccion.loop_activado) {
+        LOG_INFO("Loop activo: repitiendo canción actual: %s\n", coleccion->lista_reproduccion.canciones.cabeza->nombre);
+        return;
+    }
+
     cancion_actual = coleccion->lista_reproduccion.canciones.cabeza;
     nuevo_nodo = (NodoPila *)malloc(sizeof(NodoPila));
     if (nuevo_nodo == NULL) {

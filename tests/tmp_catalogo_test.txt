@@ -1,0 +1,4 @@
+catalogo: cancion1 - cancion2 - cancion3
+lista rock: cancion1 - cancion2
+lista pop: cancion2 - cancion3
+lista runtime: cancion1 - cancion3
