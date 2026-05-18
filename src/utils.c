@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "utils.h"
 #include "cancion.h"
 #include "salida.h"
+#include "historial.h"
 
 #define LOG_INFO salida_infof
 #define LOG_ERROR salida_errorf
@@ -135,7 +137,7 @@ void menu(void)
     char ruta_actual[512];
     ColeccionMusical coleccion;
 
-    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n - - loop\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
+    LOG_INFO("------MENU------\n - play \"nombre\"\n - queue \"nombre\"\n - next\n - back\n -- loop\n - clear queue\n - clear history\n - shuffle\n - current\n - catalog\n - lists\n - songs <nombre_lista>\n - new \"lista\": cancion1 - cancion2\n - q para salir\n");
 
     LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
     if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
@@ -150,7 +152,7 @@ void menu(void)
         return;
     }
 
-    LOG_INFO("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
+    LOG_INFO("Coleccion cargada. Usa play \"nombre\", queue \"nombre\", next, back, loop, clear queue, clear history, shuffle, current, catalog, lists, songs <nombre_lista>, new \"lista\": cancion1 - cancion2 o q para salir.\n");
 
     while (1)
     {
@@ -244,9 +246,43 @@ void menu(void)
                 printf("\n[LOOP] Modo bucle: DESACTIVADO.\n");
             }
         }
+        else if (strcmp(parametro, "clear queue") == 0)
+        {
+            // 1. Conseguimos el acceso a la lista usando el punto si coleccion es estructura directa
+            // Si en tu funcion 'menu' coleccion se declaro como 'ColeccionMusical coleccion;', usamos:
+            ListaDoble *repro = &coleccion.lista_reproduccion.canciones;
+
+            // 2. Verificamos que haya canciones en espera (mas alla de la que esta sonando)
+            if (repro->cabeza != NULL && repro->cabeza->sig != NULL) 
+            {
+                Cancion *actual = repro->cabeza->sig; // Empezamos a borrar DESPUES de la pista actual
+                while (actual != NULL) 
+                {
+                    Cancion *siguiente = actual->sig;
+                    free(actual); // Liberamos solo los nodos en espera
+                    actual = siguiente;
+                }
+                
+                // 3. Re-tejemos la estructura para dejar viva unicamente la cabeza
+                repro->cabeza->sig = NULL; 
+                repro->cola = repro->cabeza; 
+                repro->tamano = 1; 
+                
+                LOG_INFO("Cola de espera vaciada. Se mantiene la cancion actual.\n");
+            }
+            else
+            {
+                LOG_INFO("La cola de espera ya esta vacia.\n");
+            }
+        }
+        else if (strcmp(parametro, "clear history") == 0)
+        {
+            // Le pasamos la dirección de la colección musical
+            vaciar_historial_sistema(&coleccion);
+        }
         else if (strcmp(parametro, "load") == 0)
         {
-            LOG_INFO("Ruta completa del archivo (Enter para usar ruta por defecto):\n");
+            LOG_INFO("Ruta completa del archivo (Enñter para usar ruta por defecto):\n");
             if (fgets(ruta_ingresada, sizeof(ruta_ingresada), stdin) == NULL)
             {
                 LOG_ERROR("Error al leer la ruta desde terminal.\n");

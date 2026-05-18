@@ -1,5 +1,5 @@
 #include "historial.h"
-
+#include <stdio.h>
 #include <stdlib.h>
 
 /**
@@ -32,4 +32,18 @@ void limpiar_historial_reproduccion(historial_pila *historial)
 	}
 
 	historial->tope = NULL;
+}
+
+void vaciar_historial_sistema(ColeccionMusical *coleccion)
+{
+    if (coleccion == NULL) 
+    {
+        return;
+    }
+    
+    // Accedemos de forma nativa y segura:
+    // Entramos a coleccion -> luego a lista_reproduccion -> y tomamos la direccion de su historial
+    limpiar_historial_reproduccion(&coleccion->lista_reproduccion.historial);
+    
+    printf("Historial de reproduccion vaciado correctamente.\n");
 }
